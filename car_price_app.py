@@ -50,9 +50,6 @@ miles = st.sidebar.slider("Miles", min_value=0, max_value=300000, step=500, valu
 fuel_type_options = [reverse_encoders['Fuel Type'][i] for i in range(len(reverse_encoders['Fuel Type']))]
 fuel_type = st.sidebar.radio("Fuel Type", fuel_type_options, key='fuel_type')
 
-price_rating_options = [reverse_encoders['Price Rating'][i] for i in range(len(reverse_encoders['Price Rating']))]
-price_rating = st.sidebar.selectbox("Price Rating", price_rating_options, key='price_rating')
-
 exterior_options = [reverse_encoders['Exterior'][i] for i in range(len(reverse_encoders['Exterior']))]
 exterior = st.sidebar.selectbox("Exterior", exterior_options, key='exterior')
 
@@ -70,14 +67,11 @@ if st.sidebar.button("Predict"):
         encoded_make = label_encoders['Make'].transform([make])[0]
         encoded_model = label_encoders['Model'].transform([model_name])[0]
         encoded_fuel = label_encoders['Fuel Type'].transform([fuel_type])[0]
-        encoded_price_rating = label_encoders['Price Rating'].transform([price_rating])[0]
-        encoded_exterior = label_encoders['Exterior'].transform([exterior])[0]
-        encoded_interior = label_encoders['Interior'].transform([interior])[0]
 
-        input_data = [[int(year), encoded_make, encoded_model, miles, encoded_fuel, encoded_price_rating, encoded_exterior, encoded_interior]]
+        input_data = [[int(year), encoded_make, encoded_model, miles, encoded_fuel]]
 
         # Ensure model is trained
-        X = data[['Year', 'Make', 'Model', 'miles', 'Fuel Type', 'Price Rating', 'Exterior', 'Interior']]
+        X = data[['Year', 'Make', 'Model', 'miles', 'Fuel Type']]
         y = data['Price']
         model = RandomForestRegressor(random_state=42)
         model.fit(X, y)
@@ -92,7 +86,6 @@ if st.sidebar.button("Predict"):
         st.write(f"- **Model**: {model_name}")
         st.write(f"- **Miles**: {miles}")
         st.write(f"- **Fuel Type**: {fuel_type}")
-        st.write(f"- **Price Rating**: {price_rating}")
         st.write(f"- **Exterior**: {exterior}")
         st.write(f"- **Interior**: {interior}")
 
