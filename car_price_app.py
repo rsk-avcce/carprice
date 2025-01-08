@@ -21,6 +21,27 @@ def load_data(file_path):
         reverse_encoders[col] = {i: label for i, label in enumerate(le.classes_)}
     return data, label_encoders, reverse_encoders
 
+# Recommendation system
+@st.cache_data
+def recommend_vehicles(data, year, make, model, miles, price):
+    recommendations = data[
+        (data['Year'] == year) &
+        (data['Make'] == make) &
+        (data['Model'] == model) &
+
+        # (data['miles'] >= miles * 0.9) &  # Allow a 10% range below the predicted miles
+        # (data['miles'] <= miles * 1.1) &   # Allow a 10% range above the predicted miles
+        
+        (data['Price'] >= price * 0.9) &  # Allow a 10% range below the predicted price
+        (data['Price'] <= price * 1.1)    # Allow a 10% range above the predicted price
+    ]
+    recommendations = recommendations.nsmallest(5, 'Price')
+    
+    # st.write(recommendations)
+    
+    return recommendations[['Year', 'Make', 'Model', 'Price', 'miles']]
+
+
 # Load the dataset
 file_path = 'data/listings.csv'
 data, label_encoders, reverse_encoders = load_data(file_path)
@@ -91,5 +112,21 @@ if st.sidebar.button("Predict"):
 
         st.write("### Based on the above selected criteria, your car predicted price is:")
         st.success(f"${prediction:.2f}")
+        
+        # st.write(data)
+        
+        # Display recommendations
+        st.write("### Recommended Vehicles")
+        recommendations = recommend_vehicles(
+            data, int(year), label_encoders['Make'].transform([make])[0], label_encoders['Model'].transform([model_name])[0], miles, prediction
+        )
+        if recommendations.empty:
+            st.write("No recommendations found for the given criteria.")
+        else:
+            # st.table(recommendations)
+
+            for i, row in recommendations.iterrows():
+                st.write(f"- **Year**: {row['Year']}, **Make**: {reverse_encoders['Make'][row['Make']]}, **Model**: {reverse_encoders['Model'][row['Model']]}, **Price**: ${row['Price']:.2f}, **Miles**: {row['miles']}")
+        
     except Exception as e:
         st.sidebar.error(f"Error during prediction: {e}")
